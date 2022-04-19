@@ -2,14 +2,16 @@
 title: "China_Index"
 author: "Ben P-S- Lee"
 date: "04/15/2022"
-output: github_document:
-  code_folding: hide
-  toc_float: TRUE
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+
+# China Index
+
+With its economic prowess, military power, and diplomatic outreach, China has been the most consequential superpower in the world. With its rising power, China also wants to exerts more influence around the world. These influence might be in the form of **soft power**, such as significant presence of *Confucius Institute* or in the form of **sharp power**,  China Index is a project developed by Doublethinklab (DTL).
 
 ```{r packages}
 
@@ -17,14 +19,76 @@ library(tidyverse)
 library(knitr)
 library(magrittr)
 library(readxl)
+library(wbstats)
+library(quantmod)
 
 ```
 
-```{r data import}
+```{r data import, warning=FALSE}
 
 china_index <- read_excel("china_index_answer_2022-04-07.xlsx", 
     col_types = c("numeric", "numeric", "text", 
         "text", "numeric", "numeric", "text", 
         "skip", "numeric", "text"))
+```
+
+```{r wb data}
+
+gdp_pop <- wb_data(indicator = c("SP.POP.TOTL","NY.GDP.PCAP.CD"), start_date = 2020, end_date = 2020)
+
+
+
+```
+
+
+```{r data manipulation}
+china_index_country <- china_index %>%
+  group_by(country, `Focus Region`) %>%
+  summarise(score_nor = (sum(score, na.rm = TRUE)/sum(total_score, na.rm = TRUE)), total_score = sum(score, na.rm = TRUE)) %>%
+  arrange(desc(score_nor)) %>%
+  left_join(gdp_pop, by = "country") %>%
+  select(-iso2c, -iso3c, -date) %>%
+  rename(region = `Focus Region`, gdp = NY.GDP.PCAP.CD, pop = SP.POP.TOTL) %>%
+  column_to_rownames(var = "country")
+
+china_index_country["Kyrgyzstan", "gdp"] <- 1173.61
+china_index_country["Kyrgyzstan", "pop"] <- 6591600
+china_index_country["Taiwan", "gdp"] <- 28383 #UNdata 2020
+china_index_country["Taiwan", "pop"] <- 23570000
+china_index_country["South Korea", "gdp"] <- 31631.47
+china_index_country["South Korea", "pop"] <- 51780580
+china_index_country["Bolívia", "gdp"] <- 3133.10
+china_index_country["Bolívia", "pop"] <- 11673030
+china_index_country["Venezuela", "gdp"] <- 3740 #UNdata 2020
+china_index_country["Venezuela", "pop"] <- 28435940 #UNdata 2020
+  
+
+china_index_domain <- china_index %>%
+  group_by(country, `Focus Region`, domain_x) %>%
+  rename(region = `Focus Region` ) %>%
+  summarise(score_domain = (sum(score, na.rm = TRUE)/sum(total_score, na.rm = TRUE))) %>%
+  left_join(gdp_pop, by = "country")
+
+```
+
+```{r plot}
+
+china_index_domain %>%
+  filter(domain_x == c("Academia", "Domestic Politics", "Economy")) %>%
+  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region))
+
+china_index_domain %>%
+  filter(domain_x == c("Foreign Policy", "Law Enforcement", "Media")) %>%
+  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region))
+
+china_index_domain %>%
+  filter(domain_x == c("Military", "Society", "Technology")) %>%
+  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region))
+
+china_index_country %>%
+  ggplot(aes(x = gdp, y = score_nor)) + geom_jitter()
+
+china_index_country %>%
+  ggplot(aes(x = pop, y = score_nor)) + geom_jitter()
 
 ```
