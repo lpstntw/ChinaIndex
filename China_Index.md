@@ -1,4 +1,4 @@
-China\_Index
+China_Index
 ================
 Ben P-S- Lee
 04/15/2022
@@ -16,12 +16,12 @@ power**, China Index is a project developed by Doublethinklab (DTL).
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
+    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──
 
-    ## ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
-    ## ✓ tibble  3.0.4     ✓ dplyr   1.0.2
-    ## ✓ tidyr   1.1.2     ✓ stringr 1.4.0
-    ## ✓ readr   1.4.0     ✓ forcats 0.5.0
+    ## ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
+    ## ✓ tibble  3.1.6     ✓ dplyr   1.0.8
+    ## ✓ tidyr   1.2.0     ✓ stringr 1.4.0
+    ## ✓ readr   2.1.2     ✓ forcats 0.5.1
 
     ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
     ## x dplyr::filter() masks stats::filter()
@@ -87,7 +87,7 @@ gdp_pop <- wb_data(indicator = c("SP.POP.TOTL","NY.GDP.PCAP.CD"), start_date = 2
 ``` r
 china_index_country <- china_index %>%
   group_by(country, `Focus Region`) %>%
-  summarise(score_nor = (sum(score, na.rm = TRUE)/sum(total_score, na.rm = TRUE)), total_score = sum(score, na.rm = TRUE)) %>%
+  summarise(score_nor = (sum(score_v1, na.rm = TRUE)/sum(total_score, na.rm = TRUE)), total_score = sum(score_v1, na.rm = TRUE)) %>%
   arrange(desc(score_nor)) %>%
   left_join(gdp_pop, by = "country") %>%
   select(-iso2c, -iso3c, -date) %>%
@@ -95,7 +95,8 @@ china_index_country <- china_index %>%
   column_to_rownames(var = "country")
 ```
 
-    ## `summarise()` regrouping output by 'country' (override with `.groups` argument)
+    ## `summarise()` has grouped output by 'country'. You can override using the
+    ## `.groups` argument.
 
 ``` r
 china_index_country["Kyrgyzstan", "gdp"] <- 1173.61
@@ -113,16 +114,18 @@ china_index_country["Venezuela", "pop"] <- 28435940 #UNdata 2020
 china_index_domain <- china_index %>%
   group_by(country, `Focus Region`, domain_x) %>%
   rename(region = `Focus Region` ) %>%
-  summarise(score_domain = (sum(score, na.rm = TRUE)/sum(total_score, na.rm = TRUE))) %>%
-  left_join(gdp_pop, by = "country")
+  summarise(score_domain = (sum(score_v1, na.rm = TRUE)/sum(total_score, na.rm = TRUE))) %>%
+  left_join(gdp_pop, by = "country") %>%
+  arrange(region, domain_x, desc(score_domain))
 ```
 
-    ## `summarise()` regrouping output by 'country', 'region' (override with `.groups` argument)
+    ## `summarise()` has grouped output by 'country', 'region'. You can override using
+    ## the `.groups` argument.
 
 ``` r
 china_index_domain %>%
   filter(domain_x == c("Academia", "Domestic Politics", "Economy")) %>%
-  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region))
+  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region), width =0.5) + coord_flip()
 ```
 
 ![](China_Index_files/figure-gfm/plot-1.png)<!-- -->
@@ -130,7 +133,7 @@ china_index_domain %>%
 ``` r
 china_index_domain %>%
   filter(domain_x == c("Foreign Policy", "Law Enforcement", "Media")) %>%
-  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region))
+  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region), width = 0.5) + coord_flip()
 ```
 
 ![](China_Index_files/figure-gfm/plot-2.png)<!-- -->
@@ -138,7 +141,7 @@ china_index_domain %>%
 ``` r
 china_index_domain %>%
   filter(domain_x == c("Military", "Society", "Technology")) %>%
-  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region))
+  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region), width = 0.5) + coord_flip()
 ```
 
 ![](China_Index_files/figure-gfm/plot-3.png)<!-- -->
