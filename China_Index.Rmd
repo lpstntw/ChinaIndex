@@ -26,7 +26,7 @@ library(quantmod)
 
 ```{r data import, warning=FALSE}
 
-china_index <- read_excel("china_index_answer_2022-04-07.xlsx", 
+china_index <- read_excel("china_index_answer_2022-04-22.xlsx", 
     col_types = c("numeric", "numeric", "text", 
         "text", "numeric", "numeric", "text", 
         "skip", "numeric", "text"))
