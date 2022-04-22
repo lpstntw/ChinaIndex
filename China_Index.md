@@ -1,4 +1,4 @@
-China_Index
+China\_Index
 ================
 Ben P-S- Lee
 04/15/2022
@@ -16,12 +16,12 @@ power**, China Index is a project developed by Doublethinklab (DTL).
 library(tidyverse)
 ```
 
-    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.1 ──
+    ## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──
 
-    ## ✓ ggplot2 3.3.5     ✓ purrr   0.3.4
-    ## ✓ tibble  3.1.6     ✓ dplyr   1.0.8
-    ## ✓ tidyr   1.2.0     ✓ stringr 1.4.0
-    ## ✓ readr   2.1.2     ✓ forcats 0.5.1
+    ## ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
+    ## ✓ tibble  3.0.4     ✓ dplyr   1.0.2
+    ## ✓ tidyr   1.1.2     ✓ stringr 1.4.0
+    ## ✓ readr   1.4.0     ✓ forcats 0.5.0
 
     ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
     ## x dplyr::filter() masks stats::filter()
@@ -74,7 +74,7 @@ library(quantmod)
     ##   as.zoo.data.frame zoo
 
 ``` r
-china_index <- read_excel("china_index_answer_2022-04-07.xlsx", 
+china_index <- read_excel("china_index_answer_2022-04-22.xlsx", 
     col_types = c("numeric", "numeric", "text", 
         "text", "numeric", "numeric", "text", 
         "skip", "numeric", "text"))
@@ -95,8 +95,7 @@ china_index_country <- china_index %>%
   column_to_rownames(var = "country")
 ```
 
-    ## `summarise()` has grouped output by 'country'. You can override using the
-    ## `.groups` argument.
+    ## `summarise()` regrouping output by 'country' (override with `.groups` argument)
 
 ``` r
 china_index_country["Kyrgyzstan", "gdp"] <- 1173.61
@@ -119,8 +118,7 @@ china_index_domain <- china_index %>%
   arrange(region, domain_x, desc(score_domain))
 ```
 
-    ## `summarise()` has grouped output by 'country', 'region'. You can override using
-    ## the `.groups` argument.
+    ## `summarise()` regrouping output by 'country', 'region' (override with `.groups` argument)
 
 ``` r
 china_index_domain %>%
