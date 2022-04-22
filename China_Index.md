@@ -123,7 +123,10 @@ china_index_domain <- china_index %>%
 ``` r
 china_index_domain %>%
   filter(domain_x == c("Academia", "Domestic Politics", "Economy")) %>%
-  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region), width =0.5) + coord_flip()
+  ggplot(aes(x = domain_x, y = score_domain)) + 
+  geom_boxplot(aes(color = region), width = 0.5) + 
+  coord_flip() + ylim(0,1.1) + 
+  theme(legend.position = c(0.85,0.5), legend.key.size = unit(0.05, "cm"))
 ```
 
 ![](China_Index_files/figure-gfm/plot-1.png)<!-- -->
@@ -131,7 +134,9 @@ china_index_domain %>%
 ``` r
 china_index_domain %>%
   filter(domain_x == c("Foreign Policy", "Law Enforcement", "Media")) %>%
-  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region), width = 0.5) + coord_flip()
+  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region), width = 0.5) + 
+  coord_flip() + ylim(0,1.1) +
+  theme(legend.position = c(0.85,0.3), legend.key.size = unit(0.05, "cm"))
 ```
 
 ![](China_Index_files/figure-gfm/plot-2.png)<!-- -->
@@ -139,7 +144,9 @@ china_index_domain %>%
 ``` r
 china_index_domain %>%
   filter(domain_x == c("Military", "Society", "Technology")) %>%
-  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region), width = 0.5) + coord_flip()
+  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = region), width = 0.5) + 
+  coord_flip() + ylim(0,1.1) +
+   theme(legend.position = c(0.85,0.5), legend.key.size = unit(0.05, "cm"))
 ```
 
 ![](China_Index_files/figure-gfm/plot-3.png)<!-- -->
