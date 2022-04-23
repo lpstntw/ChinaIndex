@@ -26,7 +26,7 @@ library(quantmod)
 
 ```{r data import, warning=FALSE}
 
-china_index <- read_excel("china_index_answer_2022-04-22.xlsx", 
+china_index <- read_excel("china_index_answer_2022-04-23.xlsx", 
     col_types = c("numeric", "numeric", "text", 
         "text", "numeric", "numeric", "text", 
         "skip", "numeric", "text"))
@@ -66,9 +66,9 @@ china_index_country["Venezuela", "pop"] <- 28435940 #UNdata 2020
 china_index_domain <- china_index %>%
   group_by(country, `Focus Region`, domain_x) %>%
   rename(region = `Focus Region` ) %>%
-  summarise(score_domain = (sum(score_v1, na.rm = TRUE)/sum(total_score, na.rm = TRUE))) %>%
+  summarise(score_domain = (sum(score_v1, na.rm = TRUE)/sum(total_score, na.rm = TRUE)), score_domain_original = (sum(score_v1, na.rm = TRUE))) %>%
   left_join(gdp_pop, by = "country") %>%
-  arrange(region, domain_x, desc(score_domain))
+  arrange(domain_x, region, desc(score_domain))
 
 ```
 
