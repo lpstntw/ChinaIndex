@@ -45,6 +45,7 @@ library(magrittr)
 
 ``` r
 library(readxl)
+library(writexl)
 library(wbstats)
 library(quantmod)
 ```
@@ -74,10 +75,12 @@ library(quantmod)
     ##   as.zoo.data.frame zoo
 
 ``` r
-china_index <- read_excel("china_index_answer_2022-04-23.xlsx", 
-    col_types = c("numeric", "numeric", "text", 
-        "text", "numeric", "numeric", "text", 
-        "skip", "numeric", "text"))
+china_index_raw <- read_excel("china_index_answer_2022-04-27_uk.xlsx", 
+    col_types = c("skip", "numeric", "numeric", 
+        "text", "text", "numeric", "numeric", 
+        "text", "text", "numeric", "text"))
+
+UN_region <- read_excel("UNSD_Methodology.xlsx")
 ```
 
 ``` r
@@ -85,40 +88,66 @@ gdp_pop <- wb_data(indicator = c("SP.POP.TOTL","NY.GDP.PCAP.CD"), start_date = 2
 ```
 
 ``` r
-china_index_country <- china_index %>%
-  group_by(country, `Focus Region`) %>%
-  summarise(score_nor = (sum(score_v1, na.rm = TRUE)/sum(total_score, na.rm = TRUE)), total_score = sum(score_v1, na.rm = TRUE)) %>%
-  arrange(desc(score_nor)) %>%
+china_index <- china_index_raw %>%
   left_join(gdp_pop, by = "country") %>%
-  select(-iso2c, -iso3c, -date) %>%
-  rename(region = `Focus Region`, gdp = NY.GDP.PCAP.CD, pop = SP.POP.TOTL) %>%
-  column_to_rownames(var = "country")
-```
+  left_join(UN_region, by = c("country" = "Country or Area")) %>%
+  select(`indicator no.`, grading_x, domain_x, country, score, score_v1,`Focus Region`, `完成進度`, total_score, layer, 
+         NY.GDP.PCAP.CD, SP.POP.TOTL, `Region Name`, `Sub-region Name`, `Intermediate Region Name`)
 
-    ## `summarise()` regrouping output by 'country' (override with `.groups` argument)
+china_index$`Region Name`[china_index$country == "Taiwan"] <- "Asia"
+china_index$`Sub-region Name`[china_index$country == "Taiwan"] <- "Eastern Asia"
+china_index$NY.GDP.PCAP.CD[china_index$country == "Taiwan"] <- 28383
+china_index$SP.POP.TOTL[china_index$country == "Taiwan"] <- 23570000
+china_index$`Region Name`[china_index$country == "South Korea"] <- "Asia"
+china_index$`Sub-region Name`[china_index$country == "South Korea"] <- "Eastern Asia"
+china_index$NY.GDP.PCAP.CD[china_index$country == "South Korea"] <- 31631.47
+china_index$SP.POP.TOTL[china_index$country == "South Korea"] <- 51780580
+china_index$`Region Name`[china_index$country == "Bolívia"] <- "Americas"
+china_index$`Sub-region Name`[china_index$country == "Bolívia"] <- "Latin America and the Caribbean"
+china_index$`Intermediate Region Name`[china_index$country == "Bolívia"] <- "South America"
+china_index$NY.GDP.PCAP.CD[china_index$country == "Bolívia"] <- 3133.10
+china_index$SP.POP.TOTL[china_index$country == "Bolívia"] <- 11673030
+china_index$`Region Name`[china_index$country == "Venezuela"] <- "Americas"
+china_index$`Sub-region Name`[china_index$country == "Venezuela"] <- "Latin America and the Caribbean"
+china_index$`Intermediate Region Name`[china_index$country == "Venezuela"] <- "South America"
+china_index$NY.GDP.PCAP.CD[china_index$country == "Venezuela"] <- 3470
+china_index$SP.POP.TOTL[china_index$country == "Venezuela"] <- 11673030
+china_index$NY.GDP.PCAP.CD[china_index$country == "Kyrgyzstan"] <- 1173.61
+china_index$SP.POP.TOTL[china_index$country == "Kyrgyzstan"] <- 6591600
+china_index$`Region Name`[china_index$country == "United States"] <- "Americas"
+china_index$`Sub-region Name`[china_index$country == "United States"] <- "Northern America"
+china_index$`Region Name`[china_index$country == "Vietnam"] <- "Asia"
+china_index$`Sub-region Name`[china_index$country == "Vietnam"] <- "South-eastern Asia"
+china_index$`Region Name`[china_index$country == "United Kingdom"] <- "Europe"
+china_index$`Sub-region Name`[china_index$country == "United Kingdom"] <- "Northern Europe"
+china_index$`Region Name`[china_index$country == "Czech Republic"] <- "Europe"
+china_index$`Sub-region Name`[china_index$country == "Czech Republic"] <- "Eastern Europe"
+
+write_xlsx(china_index, "china_index_answer_expand_2022-04-28.xlsx")
+```
 
 ``` r
-china_index_country["Kyrgyzstan", "gdp"] <- 1173.61
-china_index_country["Kyrgyzstan", "pop"] <- 6591600
-china_index_country["Taiwan", "gdp"] <- 28383 #UNdata 2020
-china_index_country["Taiwan", "pop"] <- 23570000
-china_index_country["South Korea", "gdp"] <- 31631.47
-china_index_country["South Korea", "pop"] <- 51780580
-china_index_country["Bolívia", "gdp"] <- 3133.10
-china_index_country["Bolívia", "pop"] <- 11673030
-china_index_country["Venezuela", "gdp"] <- 3740 #UNdata 2020
-china_index_country["Venezuela", "pop"] <- 28435940 #UNdata 2020
-  
-
-china_index_domain <- china_index %>%
-  group_by(country, `Focus Region`, domain_x) %>%
-  rename(region = `Focus Region` ) %>%
-  summarise(score_domain = (sum(score_v1, na.rm = TRUE)/sum(total_score, na.rm = TRUE)), score_domain_original = (sum(score_v1, na.rm = TRUE))) %>%
-  left_join(gdp_pop, by = "country") %>%
-  arrange(domain_x, region, desc(score_domain))
+china_index_country <- china_index %>%
+  group_by(country, NY.GDP.PCAP.CD, SP.POP.TOTL, `Region Name`, `Sub-region Name`, `Intermediate Region Name`) %>%
+  summarise(score_nor = (sum(score_v1, na.rm = TRUE)/sum(total_score, na.rm = TRUE)), total_score = sum(score_v1, na.rm = TRUE)) %>%
+  arrange(desc(score_nor)) %>%
+  select(score_nor, total_score, NY.GDP.PCAP.CD, SP.POP.TOTL, `Region Name`, `Sub-region Name`, `Intermediate Region Name`) %>%
+  rename(gdp = NY.GDP.PCAP.CD, pop = SP.POP.TOTL, region = `Region Name`, sub_region = `Sub-region Name`, int_region = `Intermediate Region Name`)
 ```
 
-    ## `summarise()` regrouping output by 'country', 'region' (override with `.groups` argument)
+    ## `summarise()` regrouping output by 'country', 'NY.GDP.PCAP.CD', 'SP.POP.TOTL', 'Region Name', 'Sub-region Name' (override with `.groups` argument)
+
+    ## Adding missing grouping variables: `country`
+
+``` r
+china_index_domain <- china_index %>%
+  group_by(country, `Region Name`, `Sub-region Name`, `Intermediate Region Name`, domain_x) %>%
+  summarise(score_domain = (sum(score_v1, na.rm = TRUE)/sum(total_score, na.rm = TRUE)), score_domain_original = (sum(score_v1, na.rm = TRUE))) %>%
+  rename(region = `Region Name`, sub_region = `Sub-region Name`, int_region = `Intermediate Region Name`) %>%
+  arrange(domain_x, sub_region, desc(score_domain))
+```
+
+    ## `summarise()` regrouping output by 'country', 'Region Name', 'Sub-region Name', 'Intermediate Region Name' (override with `.groups` argument)
 
 ``` r
 china_index_domain %>%
@@ -155,15 +184,46 @@ china_index_domain %>%
 ![](China_Index_files/figure-gfm/plot-3.png)<!-- -->
 
 ``` r
-china_index_country %>%
-  ggplot(aes(x = gdp, y = score_nor)) + geom_jitter()
+china_index_domain %>%
+  filter(domain_x == c("Academia", "Domestic Politics", "Economy")) %>%
+  ggplot(aes(x = domain_x, y = score_domain)) + 
+  geom_boxplot(aes(color = sub_region), width = 0.5)
 ```
 
 ![](China_Index_files/figure-gfm/plot-4.png)<!-- -->
 
 ``` r
-china_index_country %>%
-  ggplot(aes(x = pop, y = score_nor)) + geom_jitter()
+china_index_domain %>%
+  filter(domain_x == c("Foreign Policy", "Law Enforcement", "Media")) %>%
+  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = sub_region), width = 0.5)  
 ```
 
 ![](China_Index_files/figure-gfm/plot-5.png)<!-- -->
+
+``` r
+china_index_domain %>%
+  filter(domain_x == c("Military", "Society", "Technology")) %>%
+  ggplot(aes(x = domain_x, y = score_domain)) + geom_boxplot(aes(color = sub_region), width = 0.5) 
+```
+
+![](China_Index_files/figure-gfm/plot-6.png)<!-- -->
+
+``` r
+china_index_country %>%
+  ggplot(aes(x = gdp, y = score_nor)) + geom_jitter() +
+  scale_x_log10()
+```
+
+    ## Warning: Removed 1 rows containing missing values (geom_point).
+
+![](China_Index_files/figure-gfm/plot-7.png)<!-- -->
+
+``` r
+china_index_country %>%
+  ggplot(aes(x = pop, y = score_nor)) + geom_jitter() +
+  scale_x_log10()
+```
+
+    ## Warning: Removed 1 rows containing missing values (geom_point).
+
+![](China_Index_files/figure-gfm/plot-8.png)<!-- -->
